@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de clientes</title>
+    <!-- Load Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+<div class="container">
+    <h1 class="mt-5">Formulário para registro de clientes:</h1>
+
+    <form class="mt-5" onsubmit="registerCustomer(event)">
+        <div class="form-group">
+            <label for="codigo">Código:</label>
+            <input type="text" class="form-control" id="codigo" name="codigo">
+        </div>
+
+        <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text" class="form-control" id="nome" name="nome">
+        </div>
+
+        <div class="form-group">
+            <label for="cidade">Cidade:</label>
+            <select class="form-control" id="cidade" name="cidade">
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Registrar</button>
+    </form>
+    <hr>
+
+    <table id="tabela-clientes" class="table">
+        <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Cidade</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNS0s7N"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+<script>
+        const apiCities = "http://localhost:8080/cidades";
+
+        function populateCities() {
+            fetch(apiCities)
+                .then(response => response.json())
+                .then(cities => {
+                    const citySelect = document.getElementById('cidade');
+                    cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.codigo;
+                        option.text = city.nome;
+
+                        citySelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error(error));
+        }
+        populateCities();
+
+        // Java API URL
+        const apiCostumers = "http://localhost:8080/clientes";
+
+
+        // Function to register a customer
+        function registerCustomer(event) {
+            event.preventDefault();
+
+            // Get the customer data from the form
+            const id = document.getElementById('codigo').value;
+            const name = document.getElementById('nome').value;
+            const cityId = document.getElementById('cidade');
+            const cityName = cityId.options[cityId.selectedIndex].text;
+
+            fetch(apiCostumers, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    codigo: id,
+                    nome: name,
+                    cidade: {
+                        codigo: cityId.value,
+                        nome: cityName
+                    }
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Customer registered successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error registering customer!');
+                    }
+                })
+                .catch(error => console.error(error));
+        }
+
+            function carregarClientes() {
+                $.ajax({
+                    url: apiCostumers,
+                    method: 'GET'
+                }).done(function (clientes) {
+                    var tabelaClientes = $('#tabela-clientes tbody');
+                    tabelaClientes.empty();
+                    $.each(clientes, function (i, cliente) {
+                        tabelaClientes.append(
+                            '<tr>' +
+                            '<td>' + cliente.codigo + '</td>' +
+                            '<td>' + cliente.nome + '</td>' +
+                            '<td>' + cliente.cidade.nome + '</td>' +
+                            '</tr>'
+                        );
+                    });
+                });
+            }
+
+            $(document).ready(function () {
+                carregarClientes();
+            });
+    </script>
+</body>
+</html>
+</div>
